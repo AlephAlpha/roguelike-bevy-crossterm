@@ -4,4 +4,5 @@ members = [
     "chapter-01-hellorust",
     "chapter-02-helloecs",
     "chapter-03-walkmap",
+    "chapter-04-newmap",
 ]
