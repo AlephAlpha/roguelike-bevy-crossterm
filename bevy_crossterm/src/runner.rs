@@ -1,13 +1,16 @@
-use crate::converter::convert_key_code;
+use crate::{converter::convert_key_code, Terminal};
 use bevy_app::{App, AppExit, EventReader, Events};
-use bevy_input::{keyboard::KeyboardInput, ElementState};
+use bevy_input::{
+    keyboard::{KeyCode, KeyboardInput},
+    ElementState, Input,
+};
 use crossterm::{
     event::{self, Event},
     Result,
 };
-use std::{mem, time::Duration};
+use std::time::Duration;
 
-const TIMEOUT: Duration = Duration::from_millis(50);
+const TIMEOUT: Duration = Duration::from_millis(20);
 
 pub fn crossterm_runner(mut app: App) {
     app.initialize();
@@ -19,29 +22,42 @@ fn event_loop(app: &mut App) -> Result<()> {
     let mut old_key_codes = Vec::new();
     let mut new_key_codes = Vec::new();
 
-    app.update();
-
     loop {
+        app.update();
+
+        {
+            let mut terminal = app.resources.get_mut::<Terminal>().unwrap();
+            terminal.flush().unwrap();
+        }
+
         if event::poll(TIMEOUT)? {
             let event = event::read()?;
+
+            if let Event::Resize(width, height) = event {
+                let mut terminal = app.resources.get_mut::<Terminal>().unwrap();
+                terminal.resize(width, height).unwrap();
+            }
 
             if let Event::Key(key_event) = event {
                 new_key_codes = convert_key_code(key_event);
             }
+        }
 
-            old_key_codes.retain(|key_code| {
-                if let Some(i) = new_key_codes.iter().position(|k| k == key_code) {
-                    new_key_codes.swap_remove(i);
-                    false
+        {
+            let input_keycodes = app.resources.get::<Input<KeyCode>>().unwrap();
+            for key_code in input_keycodes.get_pressed() {
+                if let Some(index) = new_key_codes.iter().position(|k| k == key_code) {
+                    new_key_codes.swap_remove(index);
                 } else {
-                    true
+                    old_key_codes.push(*key_code);
                 }
-            });
+            }
         }
 
         {
             let mut keyboard_input_events =
                 app.resources.get_mut::<Events<KeyboardInput>>().unwrap();
+
             for &key_code in old_key_codes.iter() {
                 let input_event = KeyboardInput {
                     scan_code: 0,
@@ -50,6 +66,7 @@ fn event_loop(app: &mut App) -> Result<()> {
                 };
                 keyboard_input_events.send(input_event);
             }
+
             for &key_code in new_key_codes.iter() {
                 let input_event = KeyboardInput {
                     scan_code: 0,
@@ -60,7 +77,7 @@ fn event_loop(app: &mut App) -> Result<()> {
             }
         }
 
-        mem::swap(&mut new_key_codes, &mut old_key_codes);
+        old_key_codes.clear();
         new_key_codes.clear();
 
         if let Some(app_exit_events) = app.resources.get_mut::<Events<AppExit>>() {
@@ -68,8 +85,7 @@ fn event_loop(app: &mut App) -> Result<()> {
                 break;
             }
         }
-
-        app.update();
     }
+
     Ok(())
 }

@@ -1,5 +1,8 @@
 use bevy::{input::system::exit_on_esc_system, prelude::*};
-use bevy_crossterm::{crossterm::style::Color, CrosstermPlugin, Terminal};
+use bevy_crossterm::{
+    crossterm::style::{Color, Colors},
+    CrosstermPlugin, Terminal,
+};
 use std::cmp::{max, min};
 
 #[derive(Clone, Debug)]
@@ -48,16 +51,17 @@ fn spawn_smileys(mut commands: Commands) {
 }
 
 fn render_system(mut term: ResMut<Terminal>, data: Query<(&Position, &Renderable)>) {
-    term.cls().unwrap();
+    term.cls();
     for (pos, render) in data.iter() {
-        term.set(
+        term.put_char_with_color(
             pos.x as u16,
             pos.y as u16,
-            render.fg,
-            render.bg,
             render.glyph,
-        )
-        .unwrap();
+            Colors {
+                foreground: render.fg,
+                background: render.bg,
+            },
+        );
     }
 }
 

@@ -1,10 +1,10 @@
 use bevy::{input::system::exit_on_esc_system, prelude::*};
-use bevy_crossterm::{crossterm::style::Color, CrosstermPlugin, Terminal};
-use rand::{rngs::StdRng, Rng, SeedableRng};
-use std::{
-    cmp::{max, min},
-    io::Write,
+use bevy_crossterm::{
+    crossterm::style::{Color, Colors},
+    CrosstermPlugin, Terminal,
 };
+use rand::{rngs::StdRng, Rng, SeedableRng};
+use std::cmp::{max, min};
 
 #[derive(Clone, Debug)]
 struct Position {
@@ -82,17 +82,16 @@ fn render_system(mut term: ResMut<Terminal>, map: Res<Map>, data: Query<(&Positi
     draw_map(&mut term, &map);
 
     for (pos, render) in data.iter() {
-        term.set_fast(
+        term.put_char_with_color(
             pos.x as u16,
             pos.y as u16,
-            render.fg,
-            render.bg,
             render.glyph,
-        )
-        .unwrap();
+            Colors {
+                foreground: render.fg,
+                background: render.bg,
+            },
+        );
     }
-
-    term.flush().unwrap();
 }
 
 fn try_move_player(
@@ -137,10 +136,26 @@ fn draw_map(term: &mut ResMut<Terminal>, map: &Res<Map>) {
     for tile in map.tiles.iter() {
         match tile {
             TileType::Floor => {
-                term.set_fast(x, y, Some(Color::Grey), None, '.').unwrap();
+                term.put_char_with_color(
+                    x,
+                    y,
+                    '.',
+                    Colors {
+                        foreground: Some(Color::Grey),
+                        background: None,
+                    },
+                );
             }
             TileType::Wall => {
-                term.set_fast(x, y, Some(Color::Green), None, '#').unwrap();
+                term.put_char_with_color(
+                    x,
+                    y,
+                    '#',
+                    Colors {
+                        foreground: Some(Color::Green),
+                        background: None,
+                    },
+                );
             }
         }
 
@@ -150,8 +165,6 @@ fn draw_map(term: &mut ResMut<Terminal>, map: &Res<Map>) {
             y += 1;
         }
     }
-
-    term.flush().unwrap();
 }
 
 fn main() {

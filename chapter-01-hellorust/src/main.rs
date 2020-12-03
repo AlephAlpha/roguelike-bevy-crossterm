@@ -2,8 +2,8 @@ use bevy::{input::system::exit_on_esc_system, prelude::*};
 use bevy_crossterm::{CrosstermPlugin, Terminal};
 
 fn hello_world_system(mut terminal: ResMut<Terminal>) {
-    terminal.cls().unwrap();
-    terminal.print(0, 0, "Hello Rust World").unwrap();
+    terminal.cls();
+    terminal.print(0, 0, "Hello Rust World");
 }
 
 fn main() {
