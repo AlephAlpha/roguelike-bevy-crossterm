@@ -1,13 +1,12 @@
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
-    style::{Print, ResetColor},
-    terminal::{self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, SetTitle},
-    Command, ExecutableCommand, QueueableCommand, Result,
+    style::{Color, Colors, Print, ResetColor, SetColors},
+    terminal::{
+        self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, SetSize, SetTitle,
+    },
+    ExecutableCommand, QueueableCommand, Result,
 };
-use std::{
-    fmt::Display,
-    io::{stdout, Stdout, Write},
-};
+use std::io::{self, stdout, Stdout, Write};
 
 #[derive(Debug)]
 pub struct Terminal {
@@ -18,9 +17,10 @@ impl Terminal {
     pub fn with_title(title: &str) -> Result<Self> {
         let mut stdout = stdout();
         stdout
-            .execute(EnterAlternateScreen)?
-            .execute(Hide)?
-            .execute(SetTitle(title))?;
+            .queue(EnterAlternateScreen)?
+            .queue(Hide)?
+            .queue(SetTitle(title))?;
+        stdout.flush()?;
         terminal::enable_raw_mode()?;
         Ok(Terminal { stdout })
     }
@@ -28,9 +28,24 @@ impl Terminal {
     pub fn quit(&mut self) -> Result<()> {
         terminal::disable_raw_mode()?;
         self.stdout
-            .execute(Show)?
-            .execute(ResetColor)?
-            .execute(LeaveAlternateScreen)?;
+            .queue(Show)?
+            .queue(ResetColor)?
+            .queue(LeaveAlternateScreen)?;
+        self.stdout.flush()?;
+        Ok(())
+    }
+
+    pub fn size(&self) -> Result<(u16, u16)> {
+        terminal::size()
+    }
+
+    pub fn set_title(&mut self, title: &str) -> Result<()> {
+        self.stdout.execute(SetTitle(title))?;
+        Ok(())
+    }
+
+    pub fn set_size(&mut self, width: u16, height: u16) -> Result<()> {
+        self.stdout.execute(SetSize(width, height))?;
         Ok(())
     }
 
@@ -44,6 +59,47 @@ impl Terminal {
             .queue(MoveTo(x, y))?
             .queue(Print(output.to_string()))?;
         self.stdout.flush()?;
+        Ok(())
+    }
+
+    pub fn set(
+        &mut self,
+        x: u16,
+        y: u16,
+        fg: Option<Color>,
+        bg: Option<Color>,
+        glyph: char,
+    ) -> Result<()> {
+        let colors = Colors {
+            foreground: fg,
+            background: bg,
+        };
+        self.stdout
+            .queue(MoveTo(x, y))?
+            .queue(SetColors(colors))?
+            .queue(Print(glyph.to_string()))?
+            .queue(ResetColor)?;
+        self.stdout.flush()?;
+        Ok(())
+    }
+
+    /// `set` without flushing and resetting color.
+    pub fn set_fast(
+        &mut self,
+        x: u16,
+        y: u16,
+        fg: Option<Color>,
+        bg: Option<Color>,
+        glyph: char,
+    ) -> Result<()> {
+        let colors = Colors {
+            foreground: fg,
+            background: bg,
+        };
+        self.stdout
+            .queue(MoveTo(x, y))?
+            .queue(SetColors(colors))?
+            .queue(Print(glyph.to_string()))?;
         Ok(())
     }
 }
@@ -60,16 +116,12 @@ impl Drop for Terminal {
     }
 }
 
-impl<T: Display> ExecutableCommand<T> for Terminal {
-    fn execute(&mut self, command: impl Command<AnsiType = T>) -> Result<&mut Self> {
-        self.stdout.execute(command)?;
-        Ok(self)
+impl Write for Terminal {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.stdout.write(buf)
     }
-}
 
-impl<T: Display> QueueableCommand<T> for Terminal {
-    fn queue(&mut self, command: impl Command<AnsiType = T>) -> Result<&mut Self> {
-        self.stdout.queue(command)?;
-        Ok(self)
+    fn flush(&mut self) -> io::Result<()> {
+        self.stdout.flush()
     }
 }

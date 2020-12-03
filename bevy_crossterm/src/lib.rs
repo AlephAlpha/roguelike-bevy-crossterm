@@ -4,6 +4,7 @@ mod converter;
 mod runner;
 mod terminal;
 
+pub use crossterm;
 pub use runner::crossterm_runner;
 pub use terminal::Terminal;
 

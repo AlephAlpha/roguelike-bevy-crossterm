@@ -1,2 +1,7 @@
 [workspace]
-members = ["chapter-01-hellorust", "bevy_crossterm"]
+members = [
+    "bevy_crossterm",
+    "chapter-01-hellorust",
+    "chapter-02-helloecs",
+    "chapter-03-walkmap",
+]
