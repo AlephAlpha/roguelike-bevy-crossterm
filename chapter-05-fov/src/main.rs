@@ -1,7 +1,8 @@
 use crate::{
-    components::{Player, Position, Renderable},
+    components::{Player, Position, Renderable, Viewshed},
     map::{draw_map_system, Map},
     player::player_input_system,
+    visibility_system::visibility_system,
 };
 use bevy::{input::system::exit_on_esc_system, prelude::*};
 use bevy_crossterm::{
@@ -14,6 +15,7 @@ mod components;
 mod map;
 mod player;
 mod rect;
+mod visibility_system;
 
 fn spawn_player(mut commands: Commands, map: Res<Map>) {
     let (player_x, player_y) = map.rooms[0].center();
@@ -29,6 +31,10 @@ fn spawn_player(mut commands: Commands, map: Res<Map>) {
             bg: None,
         },
         Player {},
+        Viewshed {
+            visible_tiles: Vec::new(),
+            range: 8,
+        },
     ));
 }
 
@@ -59,6 +65,7 @@ fn main() {
         .add_system(exit_on_esc_system.system())
         .add_system(player_input_system.system())
         .add_system(clear_screen_system.system())
+        .add_system(visibility_system.system())
         .add_system(draw_map_system.system())
         .add_system(render_system.system())
         .add_plugins(DefaultPlugins)

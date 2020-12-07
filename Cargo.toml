@@ -1,8 +1,10 @@
 [workspace]
 members = [
+    "roguelike_algorithms",
     "bevy_crossterm",
     "chapter-01-hellorust",
     "chapter-02-helloecs",
     "chapter-03-walkmap",
     "chapter-04-newmap",
+    "chapter-05-fov",
 ]

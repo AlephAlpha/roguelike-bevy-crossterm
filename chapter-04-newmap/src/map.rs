@@ -26,7 +26,7 @@ impl FromResources for Map {
         let mut tiles = vec![TileType::Wall; 80 * 24];
         let mut rooms: Vec<Rect> = Vec::new();
 
-        const MAX_ROOMS: i16 = 30;
+        const MAX_ROOMS: u8 = 30;
         const MIN_SIZE: i16 = 6;
         const MAX_SIZE: i16 = 10;
 
@@ -80,7 +80,7 @@ fn apply_room_to_map(room: &Rect, tiles: &mut [TileType]) {
 fn apply_horizontal_tunnel(tiles: &mut [TileType], x1: i16, x2: i16, y: i16) {
     for x in min(x1, x2)..=max(x1, x2) {
         let idx = xy_idx(x, y);
-        if idx > 0 && idx < 80 * 24 {
+        if idx < 80 * 24 {
             tiles[idx as usize] = TileType::Floor;
         }
     }
@@ -89,13 +89,13 @@ fn apply_horizontal_tunnel(tiles: &mut [TileType], x1: i16, x2: i16, y: i16) {
 fn apply_vertical_tunnel(tiles: &mut [TileType], y1: i16, y2: i16, x: i16) {
     for y in min(y1, y2)..=max(y1, y2) {
         let idx = xy_idx(x, y);
-        if idx > 0 && idx < 80 * 24 {
+        if idx < 80 * 24 {
             tiles[idx as usize] = TileType::Floor;
         }
     }
 }
 
-pub fn draw_map(term: &mut ResMut<Terminal>, map: &Res<Map>) {
+pub fn draw_map_system(mut term: ResMut<Terminal>, map: Res<Map>) {
     let mut y = 0;
     let mut x = 0;
     for tile in map.tiles.iter() {

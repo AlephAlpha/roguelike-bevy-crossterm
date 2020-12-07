@@ -99,7 +99,9 @@ impl Terminal {
     }
 
     pub fn cls(&mut self) {
-        self.new_buffer = vec![BufferItem::default(); (self.size.0 * self.size.1) as usize];
+        self.new_buffer
+            .iter_mut()
+            .for_each(|item| *item = BufferItem::default());
     }
 
     pub fn print_with_style<S: ToString>(

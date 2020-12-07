@@ -1,6 +1,6 @@
 use crate::{
     components::{Player, Position},
-    map::{xy_idx, Map, TileType},
+    map::{Map, TileType},
 };
 use bevy::prelude::*;
 use std::cmp::{max, min};
@@ -12,9 +12,9 @@ fn try_move_player(
     query: &mut Query<With<Player, &mut Position>>,
 ) {
     for mut pos in query.iter_mut() {
-        let new_x = min(79, max(0, pos.x + delta_x));
-        let new_y = min(23, max(0, pos.y + delta_y));
-        let destination_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
+        let new_x = min(map.width - 1, max(0, pos.x + delta_x));
+        let new_y = min(map.height - 1, max(0, pos.y + delta_y));
+        let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
         if map.tiles[destination_idx] == TileType::Floor {
             pos.x = new_x;
             pos.y = new_y;

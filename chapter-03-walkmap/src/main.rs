@@ -78,9 +78,11 @@ fn spawn_player(mut commands: Commands) {
     ));
 }
 
-fn render_system(mut term: ResMut<Terminal>, map: Res<Map>, data: Query<(&Position, &Renderable)>) {
-    draw_map(&mut term, &map);
+fn clear_screen_system(mut term: ResMut<Terminal>) {
+    term.cls();
+}
 
+fn render_system(mut term: ResMut<Terminal>, data: Query<(&Position, &Renderable)>) {
     for (pos, render) in data.iter() {
         term.put_char_with_color(
             pos.x as u16,
@@ -102,7 +104,7 @@ fn try_move_player(
 ) {
     for mut pos in data.iter_mut() {
         let new_x = min(79, max(0, pos.x + delta_x));
-        let new_y = min(49, max(0, pos.y + delta_y));
+        let new_y = min(23, max(0, pos.y + delta_y));
         let destination_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
         if map.tiles[destination_idx] == TileType::Floor {
             pos.x = new_x;
@@ -130,7 +132,7 @@ fn player_input_system(
     }
 }
 
-fn draw_map(term: &mut ResMut<Terminal>, map: &Res<Map>) {
+fn draw_map_system(mut term: ResMut<Terminal>, map: Res<Map>) {
     let mut y = 0;
     let mut x = 0;
     for tile in map.tiles.iter() {
@@ -168,13 +170,19 @@ fn draw_map(term: &mut ResMut<Terminal>, map: &Res<Map>) {
 }
 
 fn main() {
-    App::build()
+    let mut app_builder = App::build();
+
+    app_builder
         .add_resource(Terminal::with_title("Roguelike Tutorial"))
-        .add_resource(StdRng::from_entropy())
+        .add_resource(StdRng::from_entropy());
+
+    app_builder
         .init_resource::<Map>()
         .add_startup_system(spawn_player.system())
         .add_system(exit_on_esc_system.system())
         .add_system(player_input_system.system())
+        .add_system(clear_screen_system.system())
+        .add_system(draw_map_system.system())
         .add_system(render_system.system())
         .add_plugins(DefaultPlugins)
         .add_plugin(CrosstermPlugin)
