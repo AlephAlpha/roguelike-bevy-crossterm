@@ -117,10 +117,6 @@ impl Map2D for Map {
     fn is_in_bound(&self, (x, y): (i16, i16)) -> bool {
         x >= 0 && x < self.width && y >= 0 && y < self.height
     }
-
-    fn distance(&self, (x0, y0): (i16, i16), (x1, y1): (i16, i16)) -> i16 {
-        (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)
-    }
 }
 
 pub fn draw_map_system(
