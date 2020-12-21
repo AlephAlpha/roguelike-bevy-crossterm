@@ -34,6 +34,7 @@ fn spawn_player(commands: &mut Commands, map: Res<Map>) {
         Viewshed {
             visible_tiles: Vec::new(),
             range: 8,
+            dirty: true,
         },
     ));
 }

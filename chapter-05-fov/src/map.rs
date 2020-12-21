@@ -1,7 +1,4 @@
-use crate::{
-    components::{Player, Viewshed},
-    rect::Rect,
-};
+use crate::rect::Rect;
 use bevy::prelude::*;
 use bevy_crossterm::{
     crossterm::style::{Color, Colors},
@@ -23,6 +20,8 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub width: i16,
     pub height: i16,
+    pub revealed_tiles: Vec<bool>,
+    pub visible_tiles: Vec<bool>,
 }
 
 impl Map {
@@ -67,6 +66,8 @@ impl FromResources for Map {
             rooms: Vec::new(),
             width: 80,
             height: 24,
+            revealed_tiles: vec![false; 80 * 24],
+            visible_tiles: vec![false; 80 * 24],
         };
 
         const MAX_ROOMS: u8 = 30;
@@ -119,47 +120,47 @@ impl Map2D for Map {
     }
 }
 
-pub fn draw_map_system(
-    mut term: ResMut<Terminal>,
-    map: Res<Map>,
-    mut query: Query<&mut Viewshed, With<Player>>,
-) {
-    for viewshed in query.iter_mut() {
-        let mut y = 0;
-        let mut x = 0;
-        for tile in map.tiles.iter() {
-            if viewshed.visible_tiles.contains(&(x as i16, y as i16)) {
-                match tile {
-                    TileType::Floor => {
-                        term.put_char_with_color(
-                            x,
-                            y,
-                            '.',
-                            Colors {
-                                foreground: Some(Color::Grey),
-                                background: None,
-                            },
-                        );
-                    }
-                    TileType::Wall => {
-                        term.put_char_with_color(
-                            x,
-                            y,
-                            '#',
-                            Colors {
-                                foreground: Some(Color::Green),
-                                background: None,
-                            },
-                        );
-                    }
+pub fn draw_map_system(mut term: ResMut<Terminal>, map: Res<Map>) {
+    let mut y = 0;
+    let mut x = 0;
+    for (idx, tile) in map.tiles.iter().enumerate() {
+        // Render a tile depending upon the tile type
+        if map.revealed_tiles[idx] {
+            let glyph;
+            let fg;
+            match tile {
+                TileType::Floor => {
+                    glyph = '.';
+                    fg = if map.visible_tiles[idx] {
+                        Color::DarkCyan
+                    } else {
+                        Color::AnsiValue(8)
+                    };
+                }
+                TileType::Wall => {
+                    glyph = '#';
+                    fg = if map.visible_tiles[idx] {
+                        Color::Green
+                    } else {
+                        Color::AnsiValue(7)
+                    };
                 }
             }
+            term.put_char_with_color(
+                x,
+                y,
+                glyph,
+                Colors {
+                    foreground: Some(fg),
+                    background: None,
+                },
+            );
+        }
 
-            x += 1;
-            if x > 79 {
-                x = 0;
-                y += 1;
-            }
+        x += 1;
+        if x > 79 {
+            x = 0;
+            y += 1;
         }
     }
 }
