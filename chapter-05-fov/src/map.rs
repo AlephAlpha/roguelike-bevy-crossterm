@@ -74,10 +74,10 @@ impl FromResources for Map {
         const MAX_SIZE: i16 = 10;
 
         for _ in 0..MAX_ROOMS {
-            let w = rng.gen_range(MIN_SIZE, MAX_SIZE);
-            let h = rng.gen_range(MIN_SIZE, MAX_SIZE) / 2;
-            let x = rng.gen_range(1, map.width - w - 1);
-            let y = rng.gen_range(1, map.height - h - 1);
+            let w = rng.gen_range(MIN_SIZE..MAX_SIZE);
+            let h = rng.gen_range(MIN_SIZE..MAX_SIZE) / 2;
+            let x = rng.gen_range(1..map.width - w - 1);
+            let y = rng.gen_range(1..map.height - h - 1);
             let new_room = Rect::new(x, y, w, h);
             let mut ok = true;
             for other_room in map.rooms.iter() {
@@ -122,7 +122,7 @@ impl Map2D for Map {
 pub fn draw_map_system(
     mut term: ResMut<Terminal>,
     map: Res<Map>,
-    mut query: Query<With<Player, &mut Viewshed>>,
+    mut query: Query<&mut Viewshed, With<Player>>,
 ) {
     for viewshed in query.iter_mut() {
         let mut y = 0;

@@ -50,8 +50,8 @@ impl FromResources for Map {
         }
 
         for _i in 0..400 {
-            let x = rng.gen_range(0, 80);
-            let y = rng.gen_range(0, 24);
+            let x = rng.gen_range(0..80);
+            let y = rng.gen_range(0..24);
             let idx = xy_idx(x, y);
             if idx != xy_idx(40, 13) {
                 tiles[idx] = TileType::Wall;
@@ -66,7 +66,7 @@ fn xy_idx(x: i16, y: i16) -> usize {
     (y as usize * 80) + x as usize
 }
 
-fn spawn_player(mut commands: Commands) {
+fn spawn_player(commands: &mut Commands) {
     commands.spawn((
         Position { x: 40, y: 13 },
         Renderable {
@@ -100,7 +100,7 @@ fn try_move_player(
     delta_x: i16,
     delta_y: i16,
     map: &Res<Map>,
-    data: &mut Query<With<Player, &mut Position>>,
+    data: &mut Query<&mut Position, With<Player>>,
 ) {
     for mut pos in data.iter_mut() {
         let new_x = min(79, max(0, pos.x + delta_x));
@@ -116,7 +116,7 @@ fn try_move_player(
 fn player_input_system(
     keys: Res<Input<KeyCode>>,
     map: Res<Map>,
-    mut data: Query<With<Player, &mut Position>>,
+    mut data: Query<&mut Position, With<Player>>,
 ) {
     if keys.pressed(KeyCode::Left) {
         try_move_player(-1, 0, &map, &mut data);

@@ -116,7 +116,7 @@ pub fn convert_key_code(event: KeyEvent) -> Vec<KeyCode> {
         event::KeyCode::Char('\\') => vec![KeyCode::Backslash],
         event::KeyCode::Char('`') => vec![KeyCode::Grave],
         event::KeyCode::Char('@') => vec![KeyCode::At],
-        event::KeyCode::Char('*') => vec![KeyCode::Asterix],
+        event::KeyCode::Char('*') => vec![KeyCode::Asterisk],
         event::KeyCode::Char('-') => vec![KeyCode::Minus],
         event::KeyCode::Char('=') => vec![KeyCode::Equals],
         event::KeyCode::Char('+') => vec![KeyCode::Plus],

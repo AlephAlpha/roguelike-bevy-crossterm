@@ -13,7 +13,6 @@ use std::time::Duration;
 const TIMEOUT: Duration = Duration::from_millis(20);
 
 pub fn crossterm_runner(mut app: App) {
-    app.initialize();
     event_loop(&mut app).unwrap();
 }
 

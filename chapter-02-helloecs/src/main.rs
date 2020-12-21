@@ -24,7 +24,7 @@ struct LeftMover {}
 #[derive(Clone, Debug)]
 struct Player {}
 
-fn spawn_player(mut commands: Commands) {
+fn spawn_player(commands: &mut Commands) {
     commands.spawn((
         Position { x: 40, y: 13 },
         Renderable {
@@ -36,7 +36,7 @@ fn spawn_player(mut commands: Commands) {
     ));
 }
 
-fn spawn_smileys(mut commands: Commands) {
+fn spawn_smileys(commands: &mut Commands) {
     for i in 0..10 {
         commands.spawn((
             Position { x: i * 7, y: 10 },
@@ -65,7 +65,7 @@ fn render_system(mut term: ResMut<Terminal>, data: Query<(&Position, &Renderable
     }
 }
 
-fn left_walker_system(mut data: Query<With<LeftMover, &mut Position>>) {
+fn left_walker_system(mut data: Query<&mut Position, With<LeftMover>>) {
     for mut pos in data.iter_mut() {
         pos.x -= 1;
         if pos.x < 0 {
@@ -74,14 +74,14 @@ fn left_walker_system(mut data: Query<With<LeftMover, &mut Position>>) {
     }
 }
 
-fn try_move_player(delta_x: i16, delta_y: i16, data: &mut Query<With<Player, &mut Position>>) {
+fn try_move_player(delta_x: i16, delta_y: i16, data: &mut Query<&mut Position, With<Player>>) {
     for mut pos in data.iter_mut() {
         pos.x = min(79, max(0, pos.x + delta_x));
         pos.y = min(49, max(0, pos.y + delta_y));
     }
 }
 
-fn player_input_system(keys: Res<Input<KeyCode>>, mut data: Query<With<Player, &mut Position>>) {
+fn player_input_system(keys: Res<Input<KeyCode>>, mut data: Query<&mut Position, With<Player>>) {
     if keys.pressed(KeyCode::Left) {
         try_move_player(-1, 0, &mut data);
     }

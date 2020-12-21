@@ -15,7 +15,7 @@ mod map;
 mod player;
 mod rect;
 
-fn spawn_player(mut commands: Commands, map: Res<Map>) {
+fn spawn_player(commands: &mut Commands, map: Res<Map>) {
     let (player_x, player_y) = map.rooms[0].center();
 
     commands.spawn((

@@ -9,7 +9,7 @@ fn try_move_player(
     delta_x: i16,
     delta_y: i16,
     map: &Res<Map>,
-    query: &mut Query<With<Player, &mut Position>>,
+    query: &mut Query<&mut Position, With<Player>>,
 ) {
     for mut pos in query.iter_mut() {
         let new_x = min(79, max(0, pos.x + delta_x));
@@ -25,7 +25,7 @@ fn try_move_player(
 pub fn player_input_system(
     keys: Res<Input<KeyCode>>,
     map: Res<Map>,
-    mut query: Query<With<Player, &mut Position>>,
+    mut query: Query<&mut Position, With<Player>>,
 ) {
     if keys.pressed(KeyCode::Left) || keys.pressed(KeyCode::H) {
         try_move_player(-1, 0, &map, &mut query);

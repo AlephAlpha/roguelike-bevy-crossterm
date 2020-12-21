@@ -31,10 +31,10 @@ impl FromResources for Map {
         const MAX_SIZE: i16 = 10;
 
         for _ in 0..MAX_ROOMS {
-            let w = rng.gen_range(MIN_SIZE, MAX_SIZE);
-            let h = rng.gen_range(MIN_SIZE, MAX_SIZE) / 2;
-            let x = rng.gen_range(1, 80 - w - 1);
-            let y = rng.gen_range(1, 24 - h - 1);
+            let w = rng.gen_range(MIN_SIZE..MAX_SIZE);
+            let h = rng.gen_range(MIN_SIZE..MAX_SIZE) / 2;
+            let x = rng.gen_range(1..80 - w - 1);
+            let y = rng.gen_range(1..24 - h - 1);
             let new_room = Rect::new(x, y, w, h);
             let mut ok = true;
             for other_room in rooms.iter() {

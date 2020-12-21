@@ -8,10 +8,10 @@ edition = "2018"
 
 [dependencies]
 bevy_crossterm = { path = "../bevy_crossterm" }
-rand = "0.7.3"
+rand = "0.8.0"
 roguelike_algorithms = { path = "../roguelike_algorithms" }
 
 [dependencies.bevy]
-version = "0.3.0"
+version = "0.4.0"
 default-features = false
 features = []
