@@ -1,29 +1,15 @@
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
-    style::{Attributes, Colors, ContentStyle, Print, ResetColor, SetAttributes, SetColors},
+    style::{Attributes, Colors, ContentStyle, PrintStyledContent, ResetColor, StyledContent},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen, SetSize, SetTitle},
     ExecutableCommand, QueueableCommand, Result,
 };
 use std::io::{stdout, Stdout, Write};
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 struct BufferItem {
     glyph: Option<char>,
-    colors: Colors,
-    attributes: Attributes,
-}
-
-impl Default for BufferItem {
-    fn default() -> Self {
-        BufferItem {
-            glyph: None,
-            colors: Colors {
-                foreground: None,
-                background: None,
-            },
-            attributes: Attributes::default(),
-        }
-    }
+    style: ContentStyle,
 }
 
 #[derive(Debug)]
@@ -115,11 +101,7 @@ impl Terminal {
         let string = content.to_string();
         for (item, glyph) in self.new_buffer.iter_mut().skip(index).zip(string.chars()) {
             item.glyph = Some(glyph);
-            item.colors = Colors {
-                foreground: style.foreground_color,
-                background: style.background_color,
-            };
-            item.attributes = style.attributes;
+            item.style = style;
         }
     }
 
@@ -131,11 +113,7 @@ impl Terminal {
         let index = self.pos_to_index(x, y);
         let item = &mut self.new_buffer[index];
         item.glyph = Some(glyph);
-        item.colors = Colors {
-            foreground: style.foreground_color,
-            background: style.background_color,
-        };
-        item.attributes = style.attributes;
+        item.style = style;
     }
 
     pub fn put_char_with_color(&mut self, x: u16, y: u16, glyph: char, color: Colors) {
@@ -156,11 +134,12 @@ impl Terminal {
             if self.old_buffer[i] != self.new_buffer[i] {
                 let (x, y) = self.index_to_pos(i);
                 let item = &self.new_buffer[i];
+                let content = item.glyph.unwrap_or(' ');
+                let styled_content = StyledContent::new(item.style, content);
+
                 self.stdout
                     .queue(MoveTo(x, y))?
-                    .queue(SetColors(item.colors))?
-                    .queue(SetAttributes(item.attributes))?
-                    .queue(Print(item.glyph.unwrap_or(' ')))?;
+                    .queue(PrintStyledContent(styled_content))?;
             }
         }
         self.stdout.flush()?;
